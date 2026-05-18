@@ -4,6 +4,16 @@ import { useRef, useState } from "react";
 import mermaid from "mermaid";
 import * as htmlToImage from "html-to-image";
 import jsPDF from "jspdf";
+import {
+  Activity,
+  ShieldCheck,
+  Sparkles,
+  Network,
+  Braces,
+  GitBranch,
+  Database,
+  Zap,
+} from "lucide-react";
 
 type LogicStep = {
   name: string;
@@ -59,8 +69,22 @@ export default function Home() {
 
   mermaid.initialize({
     startOnLoad: false,
-    theme: "dark",
+    theme: "base",
+    themeVariables: {
+      background: "#0b1220",
+      primaryColor: "#1d4ed8",
+      primaryTextColor: "#ffffff",
+      primaryBorderColor: "#38bdf8",
+      lineColor: "#60a5fa",
+      secondaryColor: "#0f172a",
+      tertiaryColor: "#111827",
+      fontFamily: "Inter, Segoe UI, Arial",
+    },
     securityLevel: "loose",
+    flowchart: {
+      htmlLabels: true,
+      curve: "basis",
+    },
   });
 
   const analyzeFile = async () => {
@@ -125,24 +149,30 @@ export default function Home() {
     recommendations.push(
       hasResponse
         ? "Response action is available, so this workflow can return output to the caller."
-        : "Consider adding a Response action if this Logic App is called by HTTP."
+        : "Consider adding a Response action if this Logic App is called by HTTP.",
     );
 
     recommendations.push(
       hasCompose
         ? "Compose actions are used for calculation or data shaping."
-        : "Use Compose actions to simplify expressions and improve readability."
+        : "Use Compose actions to simplify expressions and improve readability.",
     );
 
     recommendations.push(
       hasHttp
         ? "HTTP action is detected. Validate authentication, retry policy, and timeout."
-        : "No HTTP action detected."
+        : "No HTTP action detected.",
     );
 
-    recommendations.push("Add Scope actions for better error handling and monitoring.");
-    recommendations.push("Add secure inputs/outputs for sensitive customer or financial data.");
-    recommendations.push("Use clear action names to make the workflow easier to maintain.");
+    recommendations.push(
+      "Add Scope actions for better error handling and monitoring.",
+    );
+    recommendations.push(
+      "Add secure inputs/outputs for sensitive customer or financial data.",
+    );
+    recommendations.push(
+      "Use clear action names to make the workflow easier to maintain.",
+    );
 
     const inputFields = extractInputFields(json);
     const expressions = extractExpressions(json);
@@ -218,7 +248,10 @@ export default function Home() {
     return Array.from(new Set(expressions));
   };
 
-  const generateBusinessRules = (json: any, expressions: string[]): BusinessRule[] => {
+  const generateBusinessRules = (
+    json: any,
+    expressions: string[],
+  ): BusinessRule[] => {
     const rules: BusinessRule[] = [];
 
     const hasLoanAmount = JSON.stringify(json).includes("loanAmount");
@@ -229,21 +262,24 @@ export default function Home() {
     if (hasLoanAmount && hasAnnualSalary) {
       rules.push({
         title: "DTI Calculation",
-        description: "The workflow calculates debt-to-income ratio using loan amount and annual salary.",
+        description:
+          "The workflow calculates debt-to-income ratio using loan amount and annual salary.",
       });
     }
 
     if (hasRiskScore) {
       rules.push({
         title: "Risk Score",
-        description: "The workflow classifies the customer as High, Medium, or Low risk based on the calculated DTI ratio.",
+        description:
+          "The workflow classifies the customer as High, Medium, or Low risk based on the calculated DTI ratio.",
       });
     }
 
     if (hasEmploymentYears) {
       rules.push({
         title: "Employment Stability",
-        description: "The workflow classifies employment stability based on the number of employment years.",
+        description:
+          "The workflow classifies employment stability based on the number of employment years.",
       });
     }
 
@@ -259,16 +295,19 @@ export default function Home() {
 
   const generateSamplePayload = (
     inputFields: InputField[],
-    expressions: string[]
+    expressions: string[],
   ): SamplePayload | undefined => {
     if (!inputFields.length) return undefined;
 
     const request: Record<string, any> = {};
 
     inputFields.forEach((field) => {
-      if (field.name.toLowerCase().includes("loan")) request[field.name] = 500000;
-      else if (field.name.toLowerCase().includes("salary")) request[field.name] = 1200000;
-      else if (field.name.toLowerCase().includes("employment")) request[field.name] = 4;
+      if (field.name.toLowerCase().includes("loan"))
+        request[field.name] = 500000;
+      else if (field.name.toLowerCase().includes("salary"))
+        request[field.name] = 1200000;
+      else if (field.name.toLowerCase().includes("employment"))
+        request[field.name] = 4;
       else if (field.type === "number") request[field.name] = 1;
       else if (field.type === "boolean") request[field.name] = true;
       else request[field.name] = "sample";
@@ -276,26 +315,34 @@ export default function Home() {
 
     const response: Record<string, any> = {};
 
-    const hasRiskExpression = expressions.some((x) => x.includes("riskScore") || x.includes("High"));
-    const hasDtiExpression = expressions.some((x) => x.includes("loanAmount") && x.includes("annualSalary"));
+    const hasRiskExpression = expressions.some(
+      (x) => x.includes("riskScore") || x.includes("High"),
+    );
+    const hasDtiExpression = expressions.some(
+      (x) => x.includes("loanAmount") && x.includes("annualSalary"),
+    );
 
     if (hasDtiExpression) response.dtiRatio = 5;
     if (hasRiskExpression) response.riskScore = "High";
 
-    if (Object.keys(request).some((x) => x.toLowerCase().includes("employment"))) {
+    if (
+      Object.keys(request).some((x) => x.toLowerCase().includes("employment"))
+    ) {
       response.employmentStability = "Stable";
     }
 
     return {
       request,
-      response: Object.keys(response).length ? response : { message: "Sample response depends on workflow output." },
+      response: Object.keys(response).length
+        ? response
+        : { message: "Sample response depends on workflow output." },
     };
   };
 
   const calculateComplexity = (
     triggers: Record<string, any>,
     actions: Record<string, any>,
-    expressions: string[]
+    expressions: string[],
   ): Complexity => {
     const triggerCount = Object.keys(triggers).length;
     const actionCount = Object.keys(actions).length;
@@ -307,7 +354,8 @@ export default function Home() {
       dependencyDepth = Math.max(dependencyDepth, runAfterCount + 1);
     });
 
-    const totalScore = triggerCount + actionCount + expressionCount + dependencyDepth;
+    const totalScore =
+      triggerCount + actionCount + expressionCount + dependencyDepth;
 
     let score: "Low" | "Medium" | "High" = "Low";
     if (totalScore > 20) score = "High";
@@ -353,26 +401,72 @@ export default function Home() {
     };
   };
 
-  const icon = (type: string) => {
+  const getAzureServiceKind = (type: string) => {
     const t = type.toLowerCase();
 
-    if (t.includes("request")) return "🌐";
-    if (t.includes("response")) return "📤";
-    if (t.includes("compose")) return "🧩";
-    if (t.includes("http")) return "🔗";
-    if (t.includes("condition")) return "🔀";
-    if (t.includes("foreach")) return "🔁";
-    if (t.includes("servicebus")) return "📨";
-    if (t.includes("storage")) return "🗄️";
-    if (t.includes("function")) return "⚡";
-    if (t.includes("sql")) return "🛢️";
-    if (t.includes("logic")) return "🔄";
+    if (t.includes("request") || t.includes("response")) return "logicapp";
+    if (t.includes("apiconnection") || t.includes("connection"))
+      return "apiconnection";
+    if (t.includes("function")) return "function";
+    if (t.includes("servicebus") || t.includes("service bus"))
+      return "servicebus";
+    if (t.includes("storage") || t.includes("blob") || t.includes("queue"))
+      return "storage";
+    if (t.includes("http")) return "apiconnection";
+    if (
+      t.includes("condition") ||
+      t.includes("if") ||
+      t.includes("foreach") ||
+      t.includes("switch")
+    )
+      return "logicapp";
+    if (
+      t.includes("compose") ||
+      t.includes("initialize") ||
+      t.includes("variable")
+    )
+      return "logicapp";
+    if (t.includes("sql")) return "database";
 
-    return "☁️";
+    return "azure";
+  };
+
+  const diagramIcon = (type: string) => {
+    const kind = getAzureServiceKind(type);
+
+    const icons: Record<AzureServiceKind, string> = {
+      logicapp: "🔀",
+      apiconnection: "🔗",
+      function: "⚡",
+      servicebus: "🚌",
+      storage: "🗄️",
+      database: "🛢️",
+      azure: "☁️",
+    };
+
+    const labels: Record<AzureServiceKind, string> = {
+      logicapp: "Logic Apps",
+      apiconnection: "API Connection",
+      function: "Azure Function",
+      servicebus: "Service Bus",
+      storage: "Storage Account",
+      database: "Azure SQL",
+      azure: "Azure",
+    };
+
+    return `<div style='font-size:22px;line-height:1'>${icons[kind]}</div><div style='font-weight:700;margin-top:4px'>${labels[kind]}</div>`;
   };
 
   const cleanNodeId = (name: string) => {
     return name.replace(/[^a-zA-Z0-9]/g, "_");
+  };
+
+  const escapeDiagramText = (value: string) => {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   };
 
   const generateDiagram = (steps: LogicStep[]) => {
@@ -380,7 +474,11 @@ export default function Home() {
 
     steps.forEach((step) => {
       const id = cleanNodeId(step.name);
-      chart += `${id}["${icon(step.type)} ${step.name}<br/>${step.type}"]\n`;
+      const serviceHeader = diagramIcon(step.type);
+      const name = escapeDiagramText(step.name);
+      const type = escapeDiagramText(step.type);
+
+      chart += `${id}["${serviceHeader}<div style='font-size:13px;margin-top:8px'>${name}</div><div style='font-size:12px;color:#dbeafe;margin-top:4px'>${type}</div>"]\n`;
     });
 
     steps.forEach((step, index) => {
@@ -414,7 +512,7 @@ export default function Home() {
     x: number,
     y: number,
     width: number,
-    lineHeight = 6
+    lineHeight = 6,
   ) => {
     const lines = pdf.splitTextToSize(text, width);
     pdf.text(lines, x, y);
@@ -467,7 +565,11 @@ export default function Home() {
       y += 6;
       pdf.text(`Expressions: ${result.complexity.expressionCount}`, margin, y);
       y += 6;
-      pdf.text(`Dependency Depth: ${result.complexity.dependencyDepth}`, margin, y);
+      pdf.text(
+        `Dependency Depth: ${result.complexity.dependencyDepth}`,
+        margin,
+        y,
+      );
       y += 6;
       pdf.text(`Complexity: ${result.complexity.score}`, margin, y);
     }
@@ -496,7 +598,11 @@ export default function Home() {
       pdf.setFontSize(10);
       result.inputFields.forEach((field) => {
         checkPage();
-        pdf.text(`${field.name} - ${field.type} - ${field.required ? "Required" : "Optional"}`, margin, y);
+        pdf.text(
+          `${field.name} - ${field.type} - ${field.required ? "Required" : "Optional"}`,
+          margin,
+          y,
+        );
         y += 6;
       });
     }
@@ -511,7 +617,13 @@ export default function Home() {
       pdf.setFontSize(10);
       result.businessRules.forEach((rule, index) => {
         checkPage();
-        y = addWrappedText(pdf, `${index + 1}. ${rule.title}: ${rule.description}`, margin, y, 180);
+        y = addWrappedText(
+          pdf,
+          `${index + 1}. ${rule.title}: ${rule.description}`,
+          margin,
+          y,
+          180,
+        );
         y += 3;
       });
     }
@@ -526,16 +638,32 @@ export default function Home() {
       pdf.setFontSize(9);
       result.expressions.forEach((expression, index) => {
         checkPage();
-        y = addWrappedText(pdf, `${index + 1}. ${expression}`, margin, y, 180, 5);
+        y = addWrappedText(
+          pdf,
+          `${index + 1}. ${expression}`,
+          margin,
+          y,
+          180,
+          5,
+        );
         y += 3;
       });
     }
 
     const sections = [
       { title: "AI Recommendations", items: result.recommendations },
-      { title: "Security Recommendations", items: result.securityRecommendations || [] },
-      { title: "Error Handling Recommendations", items: result.errorHandlingRecommendations || [] },
-      { title: "Monitoring Recommendations", items: result.monitoringRecommendations || [] },
+      {
+        title: "Security Recommendations",
+        items: result.securityRecommendations || [],
+      },
+      {
+        title: "Error Handling Recommendations",
+        items: result.errorHandlingRecommendations || [],
+      },
+      {
+        title: "Monitoring Recommendations",
+        items: result.monitoringRecommendations || [],
+      },
     ];
 
     sections.forEach((section) => {
@@ -573,24 +701,38 @@ export default function Home() {
 
   return (
     <main style={pageStyle}>
-      <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "46px", fontWeight: "bold" }}>
-          Azure Documentation AI
-        </h1>
-
-        <p style={{ color: "#94a3b8", marginTop: "10px" }}>
-          Upload Azure resource JSON or Logic App workflow.json and generate
-          documentation, recommendations, diagrams, and PDF reports.
-        </p>
+      <div
+        style={{
+          maxWidth: "1300px",
+          margin: "0 auto",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div style={heroStyle}>
+          <div style={badgeStyle}>
+            <Sparkles size={15} /> Azure • Logic Apps • Documentation
+          </div>
+          <h1 style={titleStyle}>Azure Documentation AI</h1>
+          <p style={subtitleStyle}>
+            Upload Azure resource JSON or Logic App workflow.json and generate
+            documentation, recommendations, diagrams, and PDF reports.
+          </p>
+        </div>
 
         <section style={cardStyle}>
-          <h2>Upload JSON File</h2>
+          <div style={sectionTitleRow}>
+            <div>
+              <p style={eyebrowStyle}>Get started</p>
+              <h2 style={sectionTitleStyle}>Upload JSON File</h2>
+            </div>
+          </div>
 
           <input
             type="file"
             accept=".json"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
-            style={{ marginTop: "18px" }}
+            style={fileInputStyle}
           />
 
           <br />
@@ -625,11 +767,31 @@ export default function Home() {
                 <h2>Complexity Score</h2>
 
                 <div style={miniGridStyle}>
-                  <MetricCard title="Triggers" value={result.complexity.triggerCount} />
-                  <MetricCard title="Actions" value={result.complexity.actionCount} />
-                  <MetricCard title="Expressions" value={result.complexity.expressionCount} />
-                  <MetricCard title="Dependency Depth" value={result.complexity.dependencyDepth} />
-                  <MetricCard title="Complexity" value={result.complexity.score} />
+                  <MetricCard
+                    title="Triggers"
+                    value={result.complexity.triggerCount}
+                    iconKind="logicapp"
+                  />
+                  <MetricCard
+                    title="Actions"
+                    value={result.complexity.actionCount}
+                    iconKind="apiconnection"
+                  />
+                  <MetricCard
+                    title="Expressions"
+                    value={result.complexity.expressionCount}
+                    iconKind="function"
+                  />
+                  <MetricCard
+                    title="Dependency Depth"
+                    value={result.complexity.dependencyDepth}
+                    iconKind="servicebus"
+                  />
+                  <MetricCard
+                    title="Complexity"
+                    value={result.complexity.score}
+                    iconKind="storage"
+                  />
                 </div>
               </section>
             )}
@@ -712,13 +874,13 @@ export default function Home() {
             )}
 
             <section style={cardStyle}>
-              <h2>AI Recommendations</h2>
+              <h2 style={headingWithIconStyle}>
+                <ShieldCheck size={22} /> AI Recommendations
+              </h2>
 
               <div style={{ marginTop: "18px" }}>
                 {result.recommendations.map((item, index) => (
-                  <div key={index} style={recommendationStyle}>
-                    ✅ {item}
-                  </div>
+                  <RecommendationItem key={index} text={item} />
                 ))}
               </div>
             </section>
@@ -750,6 +912,7 @@ export default function Home() {
               <table style={tableStyle}>
                 <thead>
                   <tr>
+                    <th align="left">Service</th>
                     <th align="left">Name</th>
                     <th align="left">Type</th>
                     <th align="left">Depends On / Run After</th>
@@ -759,6 +922,9 @@ export default function Home() {
                 <tbody>
                   {result.steps.map((step, index) => (
                     <tr key={index}>
+                      <td style={tdStyle}>
+                        <ServiceCell type={step.type} />
+                      </td>
                       <td style={tdStyle}>{step.name}</td>
                       <td style={tdStyle}>{step.type}</td>
                       <td style={tdStyle}>
@@ -796,11 +962,129 @@ export default function Home() {
   );
 }
 
-function MetricCard({ title, value }: { title: string; value: string | number }) {
+function MetricCard({
+  title,
+  value,
+  iconKind = "azure",
+}: {
+  title: string;
+  value: string | number;
+  iconKind?: AzureServiceKind;
+}) {
   return (
     <div style={metricCardStyle}>
-      <p>{title}</p>
+      <div style={metricHeaderStyle}>
+        <p style={{ margin: 0 }}>{title}</p>
+        <AzureServiceIcon kind={iconKind} size={34} />
+      </div>
       <h2>{value}</h2>
+    </div>
+  );
+}
+
+type AzureServiceKind =
+  | "logicapp"
+  | "apiconnection"
+  | "function"
+  | "servicebus"
+  | "storage"
+  | "database"
+  | "azure";
+
+function ServiceCell({ type }: { type: string }) {
+  const kind = getServiceKind(type);
+  const label = getServiceLabel(kind);
+
+  return (
+    <div style={serviceCellStyle}>
+      <AzureServiceIcon kind={kind} size={34} />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function getServiceKind(type: string): AzureServiceKind {
+  const t = type.toLowerCase();
+
+  if (t.includes("request") || t.includes("response")) return "logicapp";
+  if (
+    t.includes("apiconnection") ||
+    t.includes("connection") ||
+    t.includes("http")
+  )
+    return "apiconnection";
+  if (t.includes("function")) return "function";
+  if (t.includes("servicebus") || t.includes("service bus"))
+    return "servicebus";
+  if (t.includes("storage") || t.includes("blob") || t.includes("queue"))
+    return "storage";
+  if (t.includes("sql")) return "database";
+  if (
+    t.includes("compose") ||
+    t.includes("if") ||
+    t.includes("condition") ||
+    t.includes("initialize") ||
+    t.includes("variable")
+  )
+    return "logicapp";
+
+  return "azure";
+}
+
+function getServiceLabel(kind: AzureServiceKind) {
+  const labels: Record<AzureServiceKind, string> = {
+    logicapp: "Logic Apps",
+    apiconnection: "API Connections",
+    function: "Azure Functions",
+    servicebus: "Service Bus",
+    storage: "Storage Accounts",
+    database: "Azure SQL",
+    azure: "Azure Resource",
+  };
+
+  return labels[kind];
+}
+
+function AzureServiceIcon({
+  kind,
+  size = 36,
+}: {
+  kind: AzureServiceKind;
+  size?: number;
+}) {
+  const IconMap = {
+    logicapp: GitBranch,
+    apiconnection: Network,
+    function: Zap,
+    servicebus: Braces,
+    storage: Database,
+    database: Database,
+    azure: Sparkles,
+  };
+
+  const Icon = IconMap[kind];
+
+  return (
+    <div
+      style={{
+        ...azureIconWrapStyle,
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.32),
+      }}
+    >
+      <Icon size={Math.round(size * 0.52)} strokeWidth={2.3} />
+    </div>
+  );
+}
+
+function RecommendationItem({ text }: { text: string }) {
+  return (
+    <div style={recommendationStyle}>
+      <div style={recommendationIconWrap}>
+        <Activity size={15} strokeWidth={2.4} />
+      </div>
+      <span style={recommendationTextStyle}>{text}</span>
     </div>
   );
 }
@@ -818,9 +1102,7 @@ function RecommendationSection({
 
       <div style={{ marginTop: "18px" }}>
         {items.map((item, index) => (
-          <div key={index} style={recommendationStyle}>
-            ✅ {item}
-          </div>
+          <RecommendationItem key={index} text={item} />
         ))}
       </div>
     </section>
@@ -829,18 +1111,95 @@ function RecommendationSection({
 
 const pageStyle: React.CSSProperties = {
   minHeight: "100vh",
-  background: "#020817",
-  color: "white",
-  padding: "40px",
-  fontFamily: "Arial",
+  background:
+    "radial-gradient(circle at top left, rgba(37,99,235,0.28), transparent 32%), radial-gradient(circle at top right, rgba(6,182,212,0.16), transparent 30%), linear-gradient(135deg, #020617 0%, #07111f 48%, #0f172a 100%)",
+  color: "#f8fafc",
+  padding: "48px 32px",
+  fontFamily:
+    "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+};
+
+const heroStyle: React.CSSProperties = {
+  marginBottom: "34px",
+  padding: "8px 0 2px",
+};
+
+const badgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "8px",
+  padding: "8px 14px",
+  borderRadius: "999px",
+  background: "rgba(59, 130, 246, 0.12)",
+  border: "1px solid rgba(96, 165, 250, 0.28)",
+  color: "#bfdbfe",
+  fontSize: "13px",
+  fontWeight: 700,
+  letterSpacing: "0.03em",
+  marginBottom: "18px",
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: "56px",
+  lineHeight: 1.05,
+  fontWeight: 900,
+  letterSpacing: "-0.04em",
+  margin: 0,
+  background: "linear-gradient(90deg, #ffffff, #bfdbfe 55%, #67e8f9)",
+  WebkitBackgroundClip: "text",
+  color: "transparent",
+};
+
+const subtitleStyle: React.CSSProperties = {
+  color: "#a8c7e8",
+  marginTop: "16px",
+  maxWidth: "850px",
+  fontSize: "16px",
+  lineHeight: 1.8,
+};
+
+const sectionTitleRow: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+};
+
+const eyebrowStyle: React.CSSProperties = {
+  margin: "0 0 6px",
+  color: "#7dd3fc",
+  fontSize: "12px",
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: "0.12em",
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "22px",
+  letterSpacing: "-0.02em",
+};
+
+const fileInputStyle: React.CSSProperties = {
+  marginTop: "22px",
+  width: "100%",
+  maxWidth: "520px",
+  padding: "14px",
+  borderRadius: "14px",
+  background: "rgba(2, 6, 23, 0.65)",
+  border: "1px solid rgba(148, 163, 184, 0.18)",
+  color: "#dbeafe",
 };
 
 const cardStyle: React.CSSProperties = {
   marginTop: "28px",
-  padding: "24px",
-  borderRadius: "16px",
-  background: "#0f172a",
-  border: "1px solid #1e293b",
+  padding: "26px",
+  borderRadius: "24px",
+  background:
+    "linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.58))",
+  border: "1px solid rgba(148, 163, 184, 0.18)",
+  boxShadow:
+    "0 24px 80px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255,255,255,0.06)",
+  backdropFilter: "blur(18px)",
 };
 
 const gridStyle: React.CSSProperties = {
@@ -858,37 +1217,104 @@ const miniGridStyle: React.CSSProperties = {
 };
 
 const metricCardStyle: React.CSSProperties = {
-  padding: "18px",
-  borderRadius: "14px",
-  background: "#081225",
-  border: "1px solid #1e293b",
+  padding: "20px",
+  borderRadius: "18px",
+  background:
+    "linear-gradient(145deg, rgba(2, 6, 23, 0.72), rgba(30, 41, 59, 0.48))",
+  border: "1px solid rgba(125, 211, 252, 0.14)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+};
+
+const metricHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "12px",
+};
+
+const azureIconWrapStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+  color: "#e0f2fe",
+  background:
+    "linear-gradient(135deg, rgba(0, 120, 212, 0.95), rgba(37, 99, 235, 0.88))",
+  border: "1px solid rgba(125, 211, 252, 0.32)",
+  boxShadow:
+    "0 10px 28px rgba(14, 165, 233, 0.22), inset 0 1px 0 rgba(255,255,255,0.16)",
+};
+
+const serviceCellStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  fontWeight: 700,
+  color: "#bfdbfe",
+};
+
+const headingWithIconStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  margin: 0,
 };
 
 const recommendationStyle: React.CSSProperties = {
   marginBottom: "12px",
-  padding: "12px",
-  borderRadius: "10px",
-  background: "#081225",
-  border: "1px solid #1e293b",
+  padding: "14px 16px",
+  borderRadius: "16px",
+  background:
+    "linear-gradient(135deg, rgba(2, 6, 23, 0.58), rgba(15, 23, 42, 0.72))",
+  border: "1px solid rgba(56, 189, 248, 0.16)",
+  color: "#dbeafe",
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  boxShadow: "0 12px 28px rgba(8, 47, 73, 0.18)",
+};
+
+const recommendationIconWrap: React.CSSProperties = {
+  minWidth: "32px",
+  width: "32px",
+  height: "32px",
+  borderRadius: "12px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background:
+    "linear-gradient(135deg, rgba(34, 211, 238, 0.14), rgba(59, 130, 246, 0.12))",
+  border: "1px solid rgba(103, 232, 249, 0.22)",
+  color: "#67e8f9",
+  boxShadow: "0 0 18px rgba(34, 211, 238, 0.16)",
+};
+
+const recommendationTextStyle: React.CSSProperties = {
+  lineHeight: 1.6,
+  color: "#dbeafe",
 };
 
 const infoBoxStyle: React.CSSProperties = {
   marginBottom: "14px",
-  padding: "16px",
-  borderRadius: "12px",
-  background: "#081225",
-  border: "1px solid #1e293b",
+  padding: "18px",
+  borderRadius: "18px",
+  background: "rgba(2, 6, 23, 0.48)",
+  border: "1px solid rgba(96, 165, 250, 0.16)",
 };
 
 const tableStyle: React.CSSProperties = {
   width: "100%",
   marginTop: "20px",
-  borderCollapse: "collapse",
+  borderCollapse: "separate",
+  borderSpacing: "0 10px",
 };
 
 const tdStyle: React.CSSProperties = {
-  paddingTop: "14px",
+  padding: "14px 12px",
   color: "#e2e8f0",
+  background: "rgba(2, 6, 23, 0.35)",
+  borderTop: "1px solid rgba(148, 163, 184, 0.08)",
+  borderBottom: "1px solid rgba(148, 163, 184, 0.08)",
 };
 
 const headerRow: React.CSSProperties = {
@@ -899,10 +1325,12 @@ const headerRow: React.CSSProperties = {
 };
 
 const diagramBox: React.CSSProperties = {
-  background: "#081225",
+  background:
+    "radial-gradient(circle at top, rgba(37, 99, 235, 0.16), transparent 42%), rgba(2, 6, 23, 0.58)",
   padding: "30px",
-  borderRadius: "16px",
+  borderRadius: "22px",
   overflowX: "auto",
+  border: "1px solid rgba(148, 163, 184, 0.14)",
 };
 
 const diagramInner: React.CSSProperties = {
@@ -919,43 +1347,47 @@ const twoColumnStyle: React.CSSProperties = {
 };
 
 const codeBlockStyle: React.CSSProperties = {
-  background: "#020817",
-  border: "1px solid #1e293b",
+  background: "rgba(2, 6, 23, 0.72)",
+  border: "1px solid rgba(96, 165, 250, 0.14)",
   color: "#dbeafe",
-  padding: "16px",
-  borderRadius: "12px",
+  padding: "18px",
+  borderRadius: "18px",
   overflowX: "auto",
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
 };
 
 const blueButton: React.CSSProperties = {
-  background: "#2563eb",
+  background: "linear-gradient(135deg, #2563eb, #06b6d4)",
   border: "none",
-  padding: "12px 24px",
-  borderRadius: "8px",
+  padding: "13px 26px",
+  borderRadius: "14px",
   color: "white",
   cursor: "pointer",
   fontWeight: "bold",
+  boxShadow: "0 16px 34px rgba(37, 99, 235, 0.34)",
 };
 
 const greenButton: React.CSSProperties = {
-  background: "#16a34a",
+  background: "linear-gradient(135deg, #059669, #22c55e)",
   border: "none",
-  padding: "10px 20px",
-  borderRadius: "8px",
+  padding: "11px 20px",
+  borderRadius: "14px",
   color: "white",
   cursor: "pointer",
   fontWeight: "bold",
+  boxShadow: "0 14px 28px rgba(34, 197, 94, 0.2)",
 };
 
 const purpleButton: React.CSSProperties = {
-  background: "#9333ea",
+  background: "linear-gradient(135deg, #7c3aed, #ec4899)",
   border: "none",
-  padding: "10px 20px",
-  borderRadius: "8px",
+  padding: "11px 20px",
+  borderRadius: "14px",
   color: "white",
   cursor: "pointer",
   fontWeight: "bold",
   marginLeft: "10px",
+  boxShadow: "0 14px 28px rgba(124, 58, 237, 0.24)",
 };
